@@ -9,7 +9,7 @@ Available 1999-present.
 """
 
 from scrapy.spiders import Spider, Request
-from states.items import Report
+from states.items import Report 
 
 class StateSpider(Spider):
 
