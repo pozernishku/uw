@@ -2,7 +2,10 @@ import scrapy
 
 print("sssssss")
 print(444) 
-print('szzzzzzzzz')
+print('szzzzzzzzz') 
+print('szzzzzzzzz') 
+print('szzzzzzzzz') 
+
 
 class QuotesSpider(scrapy.Spider):
     name = "quotes"
