@@ -9,16 +9,6 @@ class OhiopdfSpider(scrapy.Spider):
     start_urls = ['http://www.ohiohouse.gov/committee/standing-committees']
 
     def parse(self, response):
-        #Code below is automatic scraping (for all committees). Takes once long time and not error free.
-        '''
-        for x in response.xpath('//h3/a[@class="black"]').extract():
-            folder = Selector(text=x).xpath('//a/text()').extract_first()
-            os.makedirs('./' + folder )
-            os.chdir('./' + folder )
-            yield Request(response.urljoin(Selector(text=x).xpath('//a/@href').extract_first()), callback=self.parsedate, meta={'fol': folder })
-            os.chdir('../')
-        '''
-        #Code below is manual scraping (for selected committee). Takes time for every separate committee and more error free. Change indeces extract()[5] in following two lines:
         folder = response.xpath('//h3/a[@class="black"]/text()').extract()[26]
         href = response.xpath('//h3/a[@class="black"]/@href').extract()[26]
         os.makedirs('./' + folder)
