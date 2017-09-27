@@ -9,48 +9,20 @@ class OhiopdfSpider(scrapy.Spider):
     start_urls = ['http://www.ohiohouse.gov/committee/standing-committees']
 
     def parse(self, response):
-        folder = response.xpath('//h3/a[@class="black"]/text()').extract()[26]
-        href = response.xpath('//h3/a[@class="black"]/@href').extract()[26]
-        os.makedirs('./' + folder)
-        os.chdir('./' + folder)
-        yield Request(response.urljoin(href), callback=self.parsedate, meta={'fol': folder})
-        os.chdir('../')
+        comm = response.xpath('//h3/a[@class="black"]/text()').extract()[0]
+        href = response.xpath('//h3/a[@class="black"]/@href').extract()[0]
+        yield Request(response.urljoin(href), callback=self.parsedate, meta={'comm': comm})
 
     def parsedate(self, response):
         i = -1
-        for x in response.xpath('//div[@class="collapsibleListHeader"]/h3/text()').extract():
-            folder = './' + response.meta.get('fol') + '/' + x
-            os.makedirs(folder)
-            os.chdir(folder)
+        dates = response.xpath('//div[@class="collapsibleListHeader"]/h3/text()').extract()
+        for date in dates:
             i += 1
-            yield Request(response.url, callback=self.parsebill, meta={'table': response.xpath('//div[@class="collapsibleList"]').extract()[i], 'fol': folder }, dont_filter=True )
-            os.chdir('../')
-            os.chdir('../')
+            collapsibleList = response.xpath('//div[@class="collapsibleList"]').extract()[i]
+            yield Request(response.url, callback=self.parsebill, meta={'collapsibleList': collapsibleList }, dont_filter=True)
 
     def parsebill(self, response):
-        tbl = Selector(text=response.meta.get('table')).response.xpath('//td/a[not(contains(text(), "Download")) and (contains(@href, ".pdf") or not(contains(@href, ".pdf"))  ) and not(contains(@href, "../")) and not(contains(@href, ".ics") ) ]').extract()
+        tbl = Selector(text=response.meta.get('collapsibleList')).response.xpath('//td/a[not(contains(text(), "Download")) and (contains(@href, ".pdf") or not(contains(@href, ".pdf"))  ) and not(contains(@href, "../")) and not(contains(@href, ".ics") ) ]').extract()
         for x in tbl:
-            folder = './' + response.meta.get('fol') + '/' + Selector(text=x).xpath('//a/text()').extract_first()
-            os.makedirs(folder)
-            os.chdir(folder)
-            
             link = Selector(text=x).xpath('//a/@href').extract_first()
             link = link if link is not None and link != '' else response.url
-            yield Request(link, callback=self.parsesave, meta={'descr': response.meta.get('table'), 'fol': folder }, dont_filter=True)
-
-            os.chdir('../')
-            os.chdir('../')
-            os.chdir('../')
-
-    def parsesave(self, response):
-        filename = response.url.split('/')[-1] if response.url.split('/')[-1].split('.')[-1] == 'pdf' else 'There is no PDF file on the site'
-        os.chdir('./' + response.meta.get('fol') )
-
-        with open('Organization, Stance, etc.htm', 'wb') as f:
-            f.write(response.meta.get('descr').encode())
-
-        with open(filename, 'wb') as f:
-            f.write(response.body)
-            os.chdir('../')
-            os.chdir('../')
-            os.chdir('../')
