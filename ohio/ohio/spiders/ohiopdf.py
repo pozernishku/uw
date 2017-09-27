@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*- csv
 import scrapy, os
 from scrapy.http.request import Request
 from scrapy.selector import Selector
